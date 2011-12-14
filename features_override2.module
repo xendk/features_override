@@ -107,16 +107,18 @@ function features_override2_features_export($data, &$export, $module_name = '') 
 /**
  * Get an array of current overrides.
  */
-function features_override2_get_overrides() {
+function features_override2_get_overrides($module_name = '') {
   // Clear & rebuild key caches.
 ////  features_rebuild();
   features_get_info(NULL, NULL, TRUE);
   $overrides = array();
   $features = features_get_features();
   foreach ($features as $name => $module) {
-    if (!in_array('features_override2', $module->info['dependencies'])) {
-      if ($features_overrides = features_override2_detect_overrides($module)) {
-        $overrides = array_merge_recursive($overrides, $features_overrides);
+    if (empty($module_name) || ($module_name == $module->name)) {
+      if (!in_array('features_override2', $module->info['dependencies'])) {
+        if ($features_overrides = features_override2_detect_overrides($module)) {
+          $overrides = array_merge_recursive($overrides, $features_overrides);
+        }
       }
     }
   }
@@ -164,6 +166,7 @@ function features_override2_features_override_ignore( $component) {
     case 'views_view':
       $ignores['display_handler'] = 0;
       $ignores['handler'] = 2;
+      $ignores['localization_plugin'] = 0;
       break;
     case 'user_permission':
 //      $ignores['module'] = 0;

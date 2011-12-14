@@ -9,6 +9,7 @@ function features_override2_form($form, $form_state, $feature = NULL) {
   drupal_add_css(drupal_get_path('module', 'features_override2') . '/features_override2.css');
 
   $form = array();
+  $override_list = array();
   if (isset($feature)) {
     $form['#feature'] = $feature;
     $form['name'] = array(
@@ -23,8 +24,10 @@ function features_override2_form($form, $form_state, $feature = NULL) {
       '#prefix' => '<h4>',
       '#suffix' => '</h4>',
     );
-    $overrides = features_override2_get_existing_overrides($feature->name);
-    $default_value = TRUE;
+    $override_list['New Overrides'] = features_override2_convert( features_override2_get_overrides($feature->name));
+    $override_list['Existing Overrides'] = features_override2_get_existing_overrides($feature->name);
+    $default_value['New Overrides'] = FALSE;
+    $default_value['Existing Overrides'] = TRUE;
   }
   else {
     $form['name'] = array(
@@ -33,33 +36,44 @@ function features_override2_form($form, $form_state, $feature = NULL) {
       '#prefix' => '<div class="features-components"><h3>',
       '#suffix' => '</h3></div>',
     );
-    $overrides = features_override2_convert( features_override2_get_overrides());
-    $default_value = FALSE;
+    $override_list['New Overrides'] = features_override2_convert( features_override2_get_overrides());
+    $default_value['New Overrides'] = FALSE;
   }
 
-  foreach ($overrides as $component => $element) {
-    $form['sources'][$component] = array(
-      '#type' => 'fieldset',
-      '#title' => $component,
+  foreach ($override_list as $type_name => $overrides) {
+    $form['sources'][$type_name]['header'] = array(
+      '#type' => 'markup', 
+      '#markup' => $type_name,
+      '#prefix' => '<h4>',
+      '#suffix' => '</h4>',
     );
-    foreach ($element as $key => $value) {
-      $code = array();
-      $options = array();
-      $default_values = array();
-      features_override2_export_override( $code, '', $value, NULL);
-      $i = 0;
-      foreach ($code as $line) {
-        $options[$key.'.'.$i] = $line;
-        $default_values[] = $key.'.'.$i;
-        $form['#code'][$component][$key.'.'.$i] = "['{$component}']['{$key}']".$line;
-        $i++;
-      }
-      $form['sources'][$component][$key][$component] = array(
-        '#type' => 'checkboxes',
-        '#options' => features_dom_encode_options($options),
-        '#title' => $key,
-        '#default_value' => features_dom_encode_options($default_values, FALSE),
+    
+    foreach ($overrides as $component => $element) {
+      $form['sources'][$type_name][$component] = array(
+        '#type' => 'fieldset',
+        '#title' => $component,
       );
+      foreach ($element as $key => $value) {
+        $code = array();
+        $options = array();
+        $default_values = array();
+        features_override2_export_override( $code, '', $value, NULL);
+        $i = 0;
+        foreach ($code as $line) {
+          $options[$key.'.'.$i] = $line;
+          if ($default_value[$type_name]) {
+            $default_values[] = $key.'.'.$i;
+          }
+          $form['#code'][$component][$key.'.'.$i] = "['{$component}']['{$key}']".$line;
+          $i++;
+        }
+        $form['sources'][$type_name][$component][$key][$component] = array(
+          '#type' => 'checkboxes',
+          '#options' => features_dom_encode_options($options),
+          '#title' => $key,
+          '#default_value' => features_dom_encode_options($default_values, FALSE),
+        );
+      }
     }
   }
   
