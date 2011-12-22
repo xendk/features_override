@@ -577,6 +577,7 @@ function features_override2_features_revert($module) {
 function features_override2_features_rebuild($module) {
   // rebuild parent modules we are overriding
   
+  print "Rebuild $module\n";
   // first build list of components we are overriding
   $parents = array();
   $data = features_get_component_map();
@@ -645,6 +646,31 @@ function features_override2_get_existing_overrides( $module_name = NULL) {
   return $overrides;  
 }
 
+/* 
+ * Implements hook_features_export_render_alter
+ * to add the drupal_alter to the exported code
+ */
+function features_override2_features_export_render_alter(&$data, $context) {
+  if (is_array($data)) {
+    $alter_line = '  features_override_alter(' . var_export($context['component'], TRUE).', \$$2);';
+    foreach ($data as $default_hook => $code) {
+      $data[$default_hook] = preg_replace('/\s+(return\s+\$([a-zA-Z_]+);)/', 
+        "\n\n" . $alter_line . "\n\n  " . '$1', $code);
+    }
+  }
+}
+
+/**
+ * Alter hook called at the end of exportable code to support overrides
+ */
+function features_override_alter($component, &$data) {
+  drupal_alter('override_features', $data, $component);
+}
+
+/* 
+ * Implements hook_override_features_alter
+ * to actually alter the data of the exportable
+ */
 function features_override2_override_features_alter(&$data, $component) {
   // first grab all the overrides
   $overrides = features_override2_get_existing_overrides();
