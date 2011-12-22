@@ -664,14 +664,14 @@ function features_override2_features_export_render_alter(&$data, $context) {
  * Alter hook called at the end of exportable code to support overrides
  */
 function features_override_alter($component, &$data) {
-  drupal_alter('override_features', $data, $component);
+  drupal_alter('features_override_render', $data, $component);
 }
 
 /* 
  * Implements hook_override_features_alter
  * to actually alter the data of the exportable
  */
-function features_override2_override_features_alter(&$data, $component) {
+function features_override2_features_override_render_alter(&$data, $component) {
   // first grab all the overrides
   $overrides = features_override2_get_existing_overrides();
   // apply the overrides to the data for this hook
