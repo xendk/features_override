@@ -652,7 +652,7 @@ function features_override2_get_existing_overrides( $module_name = NULL) {
  */
 function features_override2_features_export_render_alter(&$data, $context) {
   if (is_array($data)) {
-    $alter_line = '  features_override_alter(' . var_export($context['component'], TRUE).', \$$2);';
+    $alter_line = '  features_override_render(' . var_export($context['component'], TRUE).', \$$2);';
     foreach ($data as $default_hook => $code) {
       $data[$default_hook] = preg_replace('/\s+(return\s+\$([a-zA-Z_]+);)/', 
         "\n\n" . $alter_line . "\n\n  " . '$1', $code);
@@ -661,17 +661,17 @@ function features_override2_features_export_render_alter(&$data, $context) {
 }
 
 /**
- * Alter hook called at the end of exportable code to support overrides
+ * Helper function called at the end of exportable code to add the alter hook for modifying the data
  */
-function features_override_alter($component, &$data) {
-  drupal_alter('features_override_render', $data, $component);
+function features_override_render($component, &$data) {
+  drupal_alter('features_override_data', $data, $component);
 }
 
 /* 
  * Implements hook_override_features_alter
  * to actually alter the data of the exportable
  */
-function features_override2_features_override_render_alter(&$data, $component) {
+function features_override2_features_override_data_alter(&$data, $component) {
   // first grab all the overrides
   $overrides = features_override2_get_existing_overrides();
   // apply the overrides to the data for this hook
