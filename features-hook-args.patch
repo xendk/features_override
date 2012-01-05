@@ -1,0 +1,32 @@
+diff --git a/features.export.inc b/features.export.inc
+index 396bb0f..1b37146 100644
+--- a/features.export.inc
++++ b/features.export.inc
+@@ -236,7 +236,11 @@ function features_export_render($export, $module_name, $reset = FALSE) {
+     }
+ 
+     foreach ($hooks as $hook_name => $hook_code) {
+-      $code[$file['name']][$hook_name] = features_export_render_defaults($module_name, $hook_name, $hook_code);
++      if ($hook_name == '#function_args') {
++        continue;
++      }
++      $hook_args = !empty($hooks['#function_args'][$hook_name]) ? $hooks['#function_args'][$hook_name] : '';
++      $code[$file['name']][$hook_name] = features_export_render_defaults($module_name, $hook_name, $hook_code, $hook_args);
+     }
+   }
+ 
+@@ -357,12 +361,12 @@ function features_get_default_hooks($component = NULL, $reset = FALSE) {
+ /**
+  * Return a code string representing an implementation of a defaults module hook.
+  */
+-function features_export_render_defaults($module, $hook, $code) {
++function features_export_render_defaults($module, $hook, $code, $args = '') {
+   $output = array();
+   $output[] = "/**";
+   $output[] = " * Implements hook_{$hook}().";
+   $output[] = " */";
+-  $output[] = "function {$module}_{$hook}() {";
++  $output[] = "function {$module}_{$hook}(" . $args . ") {";
+   $output[] = $code;
+   $output[] = "}";
+   return implode("\n", $output);
